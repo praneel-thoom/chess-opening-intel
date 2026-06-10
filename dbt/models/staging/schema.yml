@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: stg_games
+    description: "Cleaned and standardized chess games from raw.games"
+    columns:
+      - name: game_id
+        tests:
+          - unique
+          - not_null
+      - name: result
+        tests:
+          - accepted_values:
+              values: ['win', 'loss', 'draw']
+      - name: time_control
+        tests:
+          - accepted_values:
+              values: ['bullet', 'blitz']
+      - name: player_color
+        tests:
+          - accepted_values:
+              values: ['white', 'black']
+
+  - name: stg_players
+    description: "Cleaned player data with corrected ELO band definitions"
+    columns:
+      - name: player_id
+        tests:
+          - unique
+          - not_null
+      - name: elo_rating
+        tests:
+          - not_null

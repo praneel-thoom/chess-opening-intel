@@ -1,0 +1,19 @@
+name: chess_opening_intel
+version: 1.0.0
+profile: chess_opening_intel
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+models:
+  chess_opening_intel:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table

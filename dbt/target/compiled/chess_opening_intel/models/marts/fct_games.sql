@@ -1,0 +1,1 @@
+select * from "postgres"."analytics_intermediate"."int_games_enriched"
