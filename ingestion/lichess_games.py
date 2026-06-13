@@ -6,7 +6,6 @@ from utils import get_engine, rate_limited_get
 
 MAX_GAMES_PER_PLAYER = 500
 
-# Create engine once at module level
 engine = get_engine()
 
 
@@ -34,6 +33,7 @@ def fetch_games_for_player(username: str, elo_band: str) -> list[dict]:
         "opening": "true",
         "clocks": "false",
         "evals": "false",
+        "since": int((datetime.now(timezone.utc).replace(day=1)).timestamp() * 1000)
     }
 
     games = []
