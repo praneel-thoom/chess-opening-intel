@@ -192,5 +192,3 @@ The pipeline runs automatically every Sunday at 6 AM UTC via GitHub Actions, pul
 ## Author
 
 **Praneel Thoom**
-Georgia Institute of Technology, Computer Engineering
-[GitHub](https://github.com/praneel-thoom)
