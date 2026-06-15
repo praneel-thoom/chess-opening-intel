@@ -6,6 +6,17 @@ An end-to-end analytics pipeline that ingests 385K+ Lichess chess games via stre
 
 ---
 
+## Dashboard Views
+
+![Chess Opening Intelligence Platform Dashboard](Tableau.png)
+
+1. **Top Openings by ELO Band** - Bar chart of opening win rates filterable by ELO band
+2. **Bullet vs. Blitz Comparison** - Side by side win rates by time control for each opening
+3. **Win Rate Heatmap** - Opening family vs. ELO band color matrix showing win rate intensity
+4. **Sample Size vs. Win Rate Scatter** - Statistical confidence view flagging low-sample outliers
+
+---
+
 ## Project Overview
 
 **Core Question:** Which chess openings maximize winning probability at each skill level, and does opening effectiveness differ between Bullet and Blitz?
@@ -89,17 +100,6 @@ models/
 ```
 
 **Data Quality Tests:** 8 automated dbt tests covering uniqueness, null checks, and accepted values on game results, time controls, and player color.
-
----
-
-## Dashboard Views
-
-![Chess Opening Intelligence Platform Dashboard](Tableau.png)
-
-1. **Top Openings by ELO Band** - Bar chart of opening win rates filterable by ELO band
-2. **Bullet vs. Blitz Comparison** - Side by side win rates by time control for each opening
-3. **Win Rate Heatmap** - Opening family vs. ELO band color matrix showing win rate intensity
-4. **Sample Size vs. Win Rate Scatter** - Statistical confidence view flagging low-sample outliers
 
 ---
 
