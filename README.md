@@ -184,7 +184,6 @@ The pipeline runs automatically every Sunday at 6 AM UTC via GitHub Actions, pul
 
 ## Known Limitations
 
-- Opening preference bias is partially mitigated by opponent-forced line deviations inherent to chess; neither player can fully control the opening
 - Initial data load covers games from 2024 to 2026; incremental runs add only current-month games
 - Beginner band (400 to 999 ELO) has lower game counts due to fewer active players at that rating range on Lichess
 
