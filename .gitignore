@@ -5,3 +5,9 @@ __pycache__/
 *.csv
 *.log
 chessenv/
+.DS_Store
+**/.DS_Store
+__pycache__/
+dbt/logs/
+dbt/target/
+logs/
