@@ -1,19 +1,8 @@
 # Chess Opening Intelligence Platform
 
-An end-to-end analytics pipeline that ingests 385K+ Lichess chess games via streaming API, transforms raw game data through a layered dbt star schema in Supabase PostgreSQL, and delivers opening win-rate intelligence across 5 ELO bands via an automated weekly GitHub Actions pipeline and interactive Tableau Public dashboard.
+An end-to-end analytics pipeline that ingests 1M+ Lichess chess games from 4,563 players via streaming API, transforms raw game data through a layered dbt star schema in Supabase PostgreSQL, and delivers opening win-rate intelligence across 5 ELO bands via an automated weekly GitHub Actions pipeline and interactive Tableau Public dashboard.
 
 **[View Live Dashboard](https://public.tableau.com/views/ChessOpeningIntelligencePlatform/ChessOpeningIntelligencePlatform)**
-
----
-
-## Dashboard Views
-
-![Chess Opening Intelligence Platform Dashboard](Tableau.png)
-
-1. **Top Openings by ELO Band** - Bar chart of opening win rates filterable by ELO band
-2. **Bullet vs. Blitz Comparison** - Side by side win rates by time control for each opening
-3. **Win Rate Heatmap** - Opening family vs. ELO band color matrix showing win rate intensity
-4. **Sample Size vs. Win Rate Scatter** - Statistical confidence view flagging low-sample outliers
 
 ---
 
@@ -66,8 +55,8 @@ Tableau Public Dashboard
 
 ## Data
 
-- **Players:** 961 Lichess players sampled across 5 ELO bands
-- **Games:** 385K+ bullet and blitz games from 2024 to 2026
+- **Players:** 4,563 Lichess players sampled across 5 ELO bands
+- **Games:** 1M+ bullet and blitz games from 2024 to 2026
 - **Source:** Lichess public API (streaming NDJSON)
 
 ### ELO Bands
@@ -103,6 +92,16 @@ models/
 
 ---
 
+## Dashboard Views
+
+![Chess Opening Intelligence Platform Dashboard](Tableau1.png)
+
+1. **Win Rate Heatmap** - Opening family vs. ELO band color matrix showing win rate intensity
+2. **Sample Size vs. Win Rate Scatter** - Statistical confidence view flagging low-sample outliers
+3. **Top Openings by ELO Band** - Bar chart of opening win rates filterable by ELO band
+
+---
+
 ## Project Structure
 
 ```
@@ -114,13 +113,25 @@ chess-opening-intel/
 ├── dbt/
 │   ├── models/
 │   │   ├── staging/
+│   │   │   ├── stg_games.sql
+│   │   │   ├── stg_players.sql
+│   │   │   └── schema.yml
 │   │   ├── intermediate/
+│   │   │   ├── int_games_enriched.sql
+│   │   │   ├── int_opening_stats_by_band.sql
+│   │   │   └── schema.yml
 │   │   └── marts/
+│   │       ├── fct_games.sql
+│   │       ├── dim_players.sql
+│   │       ├── dim_openings.sql
+│   │       ├── mart_opening_performance.sql
+│   │       └── schema.yml
 │   ├── dbt_project.yml
 │   └── profiles.yml
 ├── .github/
 │   └── workflows/
 │       └── pipeline.yml     # Weekly automated pipeline
+├── export_mart.py           # One-off script to export the mart table to CSV for Tableau
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
@@ -178,14 +189,14 @@ dbt test --profiles-dir .
 
 ## Automated Pipeline
 
-The pipeline runs automatically every Sunday at 6 AM UTC via GitHub Actions, pulling new games for all sampled players and refreshing dbt models and tests.
+The pipeline runs automatically every Sunday at 6 AM UTC via GitHub Actions, refreshing the player pool and rerunning the full dbt transformation and test suite. Full game ingestion runs manually.
 
 ---
 
 ## Known Limitations
 
-- Initial data load covers games from 2024 to 2026; incremental runs add only current-month games
-- Beginner band (400 to 999 ELO) has lower game counts due to fewer active players at that rating range on Lichess
+- Player and game data was accumulated across multiple ingestion runs between June 8 and June 16, 2026, capturing players active across different leaderboard and tournament snapshots
+- Beginner band (400 to 999 ELO) has fewer sampled players due to fewer active players at that rating range on Lichess
 
 ---
 
