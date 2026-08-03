@@ -10,4 +10,4 @@ chessenv/
 __pycache__/
 dbt/logs/
 dbt/target/
-logs/
+logs/dagster_home/

@@ -58,3 +58,6 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.7.0
 zipp==4.1.0
+dagster==1.9.9
+dagster-dbt==0.25.9
+dagster-webserver==1.9.9
