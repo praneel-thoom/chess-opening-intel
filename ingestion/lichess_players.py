@@ -102,7 +102,18 @@ def save_players(players: list[dict]):
 
     df = pd.DataFrame(players)
     df = df.drop_duplicates(subset=["player_id"])
+
     engine = get_engine()
+
+    with engine.connect() as conn:
+        existing = pd.read_sql("SELECT player_id FROM raw.players", conn)
+    
+    existing_ids = set(existing["player_id"])
+    df = df[~df["player_id"].isin(existing_ids)]
+
+    if df.empty:
+        print("All players already exist. Nothing new to insert.")
+        return
 
     df.to_sql(
         name="players",
@@ -111,7 +122,7 @@ def save_players(players: list[dict]):
         if_exists="append",
         index=False
     )
-    print(f"Saved {len(df)} players.")
+    print(f"Saved {len(df)} new players.")
 
 
 def main():
