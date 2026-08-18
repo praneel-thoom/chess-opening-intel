@@ -1,6 +1,6 @@
 # Chess Opening Intelligence Platform
 
-An end-to-end analytics pipeline that ingests 1M+ Lichess chess games from 4,563 players via streaming API, transforms raw game data through a layered dbt star schema in Supabase PostgreSQL, and delivers opening win-rate intelligence across 5 ELO bands via an automated weekly GitHub Actions pipeline and interactive Tableau Public dashboard.
+An end-to-end analytics pipeline that ingests 1M+ Lichess chess games from 4,563 players via streaming API, transforms raw game data through a layered dbt star schema in Supabase PostgreSQL, and delivers opening win-rate intelligence across 5 ELO bands via an automated weekly Dagster pipeline and interactive Tableau Public dashboard.
 
 **[View Live Dashboard](https://public.tableau.com/views/ChessOpeningIntelligencePlatform/ChessOpeningIntelligencePlatform)**
 
@@ -48,7 +48,7 @@ Tableau Public Dashboard
 | Ingestion | Python, requests, ndjson, SQLAlchemy |
 | Storage | Supabase (PostgreSQL) |
 | Transformation | dbt-core 1.8.2, dbt-postgres |
-| Orchestration | GitHub Actions (weekly cron) |
+| Orchestration | Dagster (weekly cron) |
 | Visualization | Tableau Public |
 
 ---
@@ -189,7 +189,7 @@ dbt test --profiles-dir .
 
 ## Automated Pipeline
 
-The pipeline runs automatically every Sunday at 6 AM UTC via GitHub Actions, refreshing the player pool and rerunning the full dbt transformation and test suite. Full game ingestion runs manually.
+The pipeline runs automatically every Sunday at 6 AM UTC via Dagster, refreshing the player pool and rerunning the full dbt transformation and test suite. Full game ingestion runs manually.
 
 ---
 
