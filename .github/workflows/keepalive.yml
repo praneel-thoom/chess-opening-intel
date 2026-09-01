@@ -1,0 +1,47 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: '0 0 */3 * *'  # Every 3 days at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install psycopg2
+        run: pip install psycopg2-binary
+
+      - name: Ping database
+        env:
+          SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+          SUPABASE_DB_PORT: ${{ secrets.SUPABASE_DB_PORT }}
+          SUPABASE_DB_NAME: ${{ secrets.SUPABASE_DB_NAME }}
+          SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          python - <<'EOF'
+          import os
+          import psycopg2
+
+          conn = psycopg2.connect(
+              host=os.environ["SUPABASE_DB_HOST"],
+              port=os.environ["SUPABASE_DB_PORT"],
+              dbname=os.environ["SUPABASE_DB_NAME"],
+              user=os.environ["SUPABASE_DB_USER"],
+              password=os.environ["SUPABASE_DB_PASSWORD"],
+              sslmode="require",
+          )
+          with conn.cursor() as cur:
+              cur.execute("SELECT 1;")
+              result = cur.fetchone()
+          conn.close()
+          print(f"Supabase ping successful: {result}")
+          EOF
