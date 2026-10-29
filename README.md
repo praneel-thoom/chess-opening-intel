@@ -1,10 +1,10 @@
 # Chess Opening Intelligence Platform
 
-An end-to-end analytics pipeline that ingests 1M+ Lichess chess games from 4,563 players via streaming API, transforms raw game data through a layered dbt star schema in Supabase PostgreSQL, and delivers opening win-rate intelligence across 5 ELO bands via an automated weekly Dagster pipeline and interactive Tableau Public dashboard.
+An end-to-end analytics pipeline that ingests 1M+ Lichess chess games from 4,563 players via streaming API, transforms raw game data through a layered dbt star schema in Supabase PostgreSQL, and delivers opening win-rate intelligence across 5 ELO bands via an interactive Tableau Public dashboard.
 
 **[View Live Dashboard](https://public.tableau.com/views/ChessOpeningIntelligencePlatform/ChessOpeningIntelligencePlatform)**
 
----
+***
 
 ## Project Overview
 
@@ -16,42 +16,82 @@ An end-to-end analytics pipeline that ingests 1M+ Lichess chess games from 4,563
 - High-volume openings like the French Defense and Nimzowitsch Defense maintain stable win rates at scale, confirming statistical reliability
 - Several openings (e.g. Blackmar-Diemer Gambit) show inflated win rates at low sample sizes, flagged via the sample size vs. win rate scatter view
 
----
+***
 
 ## Architecture
 
-```
-Lichess API (NDJSON Stream)
-        |
-        v
-Python Ingestion Scripts
-(lichess_players.py, lichess_games.py)
-        |
-        v
-Supabase PostgreSQL (raw schema)
-raw.players | raw.games
-        |
-        v
-dbt Transformation Layer
-staging --> intermediate --> marts
-        |
-        v
-Tableau Public Dashboard
+```mermaid
+flowchart LR
+    subgraph S1["1. SOURCE"]
+        API["Lichess API<br/>NDJSON stream"]
+    end
+
+    subgraph S2["2. INGESTION (Python)"]
+        P["lichess_players.py<br/>samples players by ELO band"]
+        G["lichess_games.py<br/>incremental game loading"]
+    end
+
+    subgraph S3["3. RAW STORAGE (Supabase PostgreSQL)"]
+        RP[("raw.players")]
+        RG[("raw.games")]
+    end
+
+    subgraph S4["4. TRANSFORMATION (dbt)"]
+        subgraph STG["Staging"]
+            SP["stg_players"]
+            SG["stg_games"]
+        end
+        subgraph INT["Intermediate"]
+            IGE["int_games_enriched"]
+            IOS["int_opening_stats_by_band"]
+        end
+        subgraph MARTS["Marts"]
+            DP["dim_players"]
+            DO["dim_openings"]
+            FG["fct_games"]
+            MOP["mart_opening_performance"]
+        end
+    end
+
+    subgraph S5["5. SERVING"]
+        EXP["export_mart.py<br/>mart to CSV"]
+        TAB["Tableau Public<br/>dashboard"]
+    end
+
+    API ==> P
+    API ==> G
+    P ==> RP
+    G ==> RG
+
+    RP ==> SP
+    RG ==> SG
+
+    SP ==> IGE
+    SG ==> IGE
+    IGE ==> IOS
+
+    SP ==> DP
+    SG ==> DO
+    IGE ==> FG
+    IOS ==> MOP
+    DO ==> MOP
+
+    MOP ==> EXP
+    EXP ==> TAB
 ```
 
----
+***
 
 ## Tech Stack
 
 | Layer | Tools |
-|-------|-------|
+| - | - |
 | Ingestion | Python, requests, ndjson, SQLAlchemy |
 | Storage | Supabase (PostgreSQL) |
 | Transformation | dbt-core 1.8.2, dbt-postgres |
-| Orchestration | Dagster (weekly cron) |
 | Visualization | Tableau Public |
 
----
+***
 
 ## Data
 
@@ -62,14 +102,14 @@ Tableau Public Dashboard
 ### ELO Bands
 
 | Band | Rating Range |
-|------|-------------|
+| - | - |
 | Beginner | 400 to 999 |
 | Intermediate | 1000 to 1299 |
 | Club | 1300 to 1599 |
 | Advanced | 1600 to 1999 |
 | Expert | 2000+ |
 
----
+***
 
 ## dbt Models
 
@@ -88,19 +128,54 @@ models/
     └── mart_opening_performance.sql   # Pre-aggregated Tableau serving layer
 ```
 
+### Star Schema
+
+```mermaid
+erDiagram
+    dim_players ||..o{ fct_games : ""
+    dim_openings ||..o{ fct_games : ""
+
+    dim_players {
+        string player_id PK
+        string username
+        int elo_rating
+        string elo_band
+    }
+
+    dim_openings {
+        string opening_eco PK
+        string opening_name
+        string opening_family
+    }
+
+    fct_games {
+        string opening_eco FK
+        string player_id FK
+        string time_control
+        string player_elo_band
+        string result
+        string player_color
+        int game_length
+    }
+```
+
+`dim_openings` is deduplicated by ECO code, keeping the most frequent opening name for each code. `mart_opening_performance` is built from `int_opening_stats_by_band` joined to `dim_openings`, and serves the Tableau dashboard directly.
+
 **Data Quality Tests:** 8 automated dbt tests covering uniqueness, null checks, and accepted values on game results, time controls, and player color.
 
----
+***
 
 ## Dashboard Views
 
-![Chess Opening Intelligence Platform Dashboard](Tableau1.png)
+[![Chess Opening Intelligence Platform Dashboard](Tableau1.png)](https://public.tableau.com/views/ChessOpeningIntelligencePlatform/ChessOpeningIntelligencePlatform)
+
+*Click the image to open the interactive dashboard on Tableau Public.*
 
 1. **Win Rate Heatmap** - Opening family vs. ELO band color matrix showing win rate intensity
 2. **Sample Size vs. Win Rate Scatter** - Statistical confidence view flagging low-sample outliers
 3. **Top Openings by ELO Band** - Bar chart of opening win rates filterable by ELO band
 
----
+***
 
 ## Project Structure
 
@@ -128,16 +203,13 @@ chess-opening-intel/
 │   │       └── schema.yml
 │   ├── dbt_project.yml
 │   └── profiles.yml
-├── .github/
-│   └── workflows/
-│       └── pipeline.yml     # Weekly automated pipeline
-├── export_mart.py           # One-off script to export the mart table to CSV for Tableau
+├── export_mart.py           # Exports the mart table to CSV for Tableau
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
 ```
 
----
+***
 
 ## Setup
 
@@ -179,26 +251,21 @@ python ingestion/lichess_players.py
 # Ingest games
 python ingestion/lichess_games.py
 
-# Run dbt transformations
+# Run dbt transformations and tests
 cd dbt
-dbt run --profiles-dir .
-dbt test --profiles-dir .
+export DBT_PROFILES_DIR=.
+dbt run
+dbt test
 ```
 
----
-
-## Automated Pipeline
-
-The pipeline runs automatically every Sunday at 6 AM UTC via Dagster, refreshing the player pool and rerunning the full dbt transformation and test suite. Full game ingestion runs manually.
-
----
+***
 
 ## Known Limitations
 
 - Player and game data was accumulated across multiple ingestion runs between June 8 and June 16, 2026, capturing players active across different leaderboard and tournament snapshots
 - Beginner band (400 to 999 ELO) has fewer sampled players due to fewer active players at that rating range on Lichess
 
----
+***
 
 ## Author
 
